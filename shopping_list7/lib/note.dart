@@ -2,12 +2,8 @@ final String tableNotes = 'notes';
 
 class NoteFields {
   static final List<String> values = [
-    id,
-    createdTime,
-    isImportant,
-    number,
-    title,
-    description
+    /// Add all fields
+    id, isImportant, number, title, description, time
   ];
 
   static final String id = '_id';
@@ -15,55 +11,53 @@ class NoteFields {
   static final String number = 'number';
   static final String title = 'title';
   static final String description = 'description';
-  static final String createdTime = 'createdTime';
+  static final String time = 'time';
 }
 
 class Note {
   final int? id;
   final bool isImportant;
-  final int number;
   final String title;
   final String description;
-  final DateTime createdTime;
+  final DateTime time;
 
-  const Note(
-      {this.id,
-      required this.createdTime,
-      required this.description,
-      required this.isImportant,
-      required this.number,
-      required this.title});
+  const Note({
+    this.id,
+    required this.isImportant,
+    required this.title,
+    required this.description,
+    required this.time,
+  });
+
+  Note copy({
+    int? id,
+    bool? isImportant,
+    int? number,
+    String? title,
+    String? description,
+    DateTime? time,
+  }) =>
+      Note(
+        id: id ?? this.id,
+        isImportant: isImportant ?? this.isImportant,
+        title: title ?? this.title,
+        description: description ?? this.description,
+        time: time ?? this.time,
+      );
 
   static Note fromJson(Map<String, Object?> json) => Note(
         id: json[NoteFields.id] as int?,
-        number: json[NoteFields.number] as int,
-        createdTime: DateTime.parse([NoteFields.createdTime] as String),
-        description: json[NoteFields.description] as String,
-        title: json[NoteFields.title] as String,
         isImportant: json[NoteFields.isImportant] == 1,
+        title: json[NoteFields.title] as String,
+        description: json[NoteFields.description] as String,
+        time: DateTime.parse(json[NoteFields.time] as String),
       );
 
   Map<String, Object?> toJson() => {
         NoteFields.id: id,
-        NoteFields.createdTime: createdTime.toIso8601String(),
-        NoteFields.description: description,
+        NoteFields.title: title,
         NoteFields.isImportant: isImportant ? 1 : 0,
-        NoteFields.number: number,
-        NoteFields.title: title
+        NoteFields.description: description,
+        NoteFields.time: time.toIso8601String(),
       };
-
-  Note copy(
-          {int? id,
-          bool? isImportant,
-          int? number,
-          String? title,
-          String? description,
-          DateTime? createdTime}) =>
-      Note(
-          id: id ?? this.id,
-          createdTime: createdTime ?? this.createdTime,
-          description: description ?? this.description,
-          isImportant: isImportant ?? this.isImportant,
-          number: number ?? this.number,
-          title: title ?? this.title);
 }

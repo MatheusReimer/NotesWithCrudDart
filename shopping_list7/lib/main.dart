@@ -34,38 +34,42 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late List<Note> notes;
+  List<Note>? notes;
   bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+
     refreshNotes();
   }
 
+  @override
+  void dispose() {
+    NotesDatabase.instance.close();
+
+    super.dispose();
+  }
+
   Future refreshNotes() async {
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
+
     this.notes = await NotesDatabase.instance.readAllNotes();
-    setState(() {
-      isLoading = false;
-    });
+
+    setState(() => isLoading = false);
+  }
+
+  Future addNote(String title) async {
+    final note = Note(
+      title: title,
+      isImportant: true,
+      description: "",
+      time: DateTime.now(),
+    );
+    await NotesDatabase.instance.create(note);
   }
 
   String fieldText = "";
-  var lists = [
-    "Shopping List",
-    "To do List",
-    "Appointments List",
-    "Homework List"
-  ];
-
-  int generateRandomColor() {
-    Random random = new Random();
-    int randomNumber = random.nextInt(200) + 50;
-    return randomNumber;
-  }
 
   showAlertDialog(BuildContext context, int index) {
     // set up the buttons
@@ -79,9 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Text("Yes"),
       onPressed: () {
         Navigator.pop(context);
-        setState(() {
-          lists.removeWhere((element) => element == lists[index]);
-        });
       },
     );
 
@@ -109,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: true,
         floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.green,
           onPressed: () {
@@ -171,8 +173,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               onPressed: () => {
                                 print(fieldText),
                                 setState(() {
-                                  lists.add(capitalize(fieldText));
+                                  addNote(fieldText);
                                 }),
+                                refreshNotes(),
                                 Navigator.pop(context)
                               },
                             ),
@@ -214,38 +217,39 @@ class _MyHomePageState extends State<MyHomePage> {
             alignment: Alignment.centerRight,
           ),
           Expanded(
-              child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                  ),
-                  itemCount: lists.length,
-                  padding: EdgeInsets.all(8),
-                  itemBuilder: (BuildContext context, int index) {
-                    return GestureDetector(
-                      onTap: () => {},
-                      onDoubleTap: () {
-                        showAlertDialog(context, index);
-                      },
-                      /*,
+              child: notes != null
+                  ? GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                      ),
+                      itemCount: notes?.length,
+                      padding: EdgeInsets.all(8),
+                      itemBuilder: (BuildContext context, int index) {
+                        return GestureDetector(
+                          onTap: () => {},
+                          onDoubleTap: () {
+                            showAlertDialog(context, index);
+                          },
+                          /*,
                     setState(() {
                       lists.removeWhere((element) => element == lists[index]);
                     });
                     */
 
-                      child: Card(
-                        color: Color.fromARGB(
-                            generateRandomColor(),
-                            generateRandomColor(),
-                            generateRandomColor(),
-                            generateRandomColor()),
-                        child: Center(
-                            child: Text(
-                          lists[index],
-                          style: TextStyle(color: Colors.white),
-                        )),
-                      ),
-                    );
-                  })),
+                          child: Card(
+                            color: Color.fromARGB(0, 0, 0, 0),
+                            child: Center(
+                                child: Text(
+                              notes!.length > 0
+                                  ? notes![index].title
+                                  : "Still nothing here",
+                              style: TextStyle(color: Colors.white),
+                            )),
+                          ),
+                        );
+                      })
+                  : Text("Add notes to show here")),
           Row(mainAxisAlignment: MainAxisAlignment.end, children: [Container()])
         ]));
   }
